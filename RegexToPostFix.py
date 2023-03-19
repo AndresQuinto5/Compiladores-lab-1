@@ -18,12 +18,10 @@ class RegexToPostfix:
     def __init__(self):
         # Diccionario que contiene la precedencia de los operadores
         self.operators_precedence = {
-        1: '(',
-        2: '|',
-        3: '.', # operador de concatenacion explicito
-        4: '?',
-        4: '*',
-        4: '+'
+            1: '(',
+            2: '|',
+            3: '.', # operador de concatenacion explicito
+            4: ['?', '*', '+']
         }
 
     def get_key(self,character):
@@ -34,7 +32,7 @@ class RegexToPostfix:
         - character: un caracter o token 
         '''
         for key, value in self.operators_precedence.items():
-            if character == value:
+            if character in value:
                 return key
         return None
 
@@ -46,7 +44,7 @@ class RegexToPostfix:
         - return - la precedencia correspondiente
         '''
         precedence = self.get_key(character)
-        precedence = 5 if precedence == None else precedence
+        precedence = 5 if precedence is None else precedence
         return precedence
 
     def replaceQuestionMark(self, exp):
@@ -57,17 +55,23 @@ class RegexToPostfix:
             index = exp.find('?')
             if exp[index-1] == ")":
                 inside = ""
+                counter = 0
                 for i in reversed(exp[0:index-1]):
                     inside += i
-                    if i == "(":
-                        inside = inside[::-1]
-                        quantity1 = len(inside)
-                        quantity2 = len(exp[0:index-1])
-                        ignore = quantity2 - quantity1
-                        inside = inside[1:len(inside)]
-                        return self.replaceQuestionMark(exp[0:ignore] + "(" + inside + "|ε)" + exp[index+1:len(exp)])
+                    if i == ")":
+                        counter += 1
+                    elif i == "(":
+                        counter -= 1
+                    if counter == 0:
+                        break
+                inside = inside[::-1]
+                quantity1 = len(inside)
+                quantity2 = len(exp[0:index-1])
+                ignore = quantity2 - quantity1
+                return self.replaceQuestionMark(exp[0:ignore] + "(" + inside + "|ε)" + exp[index+1:len(exp)])
             else:
                 return self.replaceQuestionMark(exp[0:index-1] + "(" + exp[index-1] + "|ε)" + exp[index+1:len(exp)])
+
 
     def replacePlus(self, exp):
         value = "+" in exp
@@ -77,17 +81,23 @@ class RegexToPostfix:
             index = exp.find('+')
             if exp[index-1] == ")":
                 inside = ""
+                counter = 0
                 for i in reversed(exp[0:index-1]):
                     inside += i
-                    if i == "(":
-                        inside = inside[::-1]
-                        quantity1 = len(inside)
-                        quantity2 = len(exp[0:index-1])
-                        ignore = quantity2 - quantity1
-                        inside = inside[1:len(inside)]
-                        return self.replacePlus(exp[0:ignore] + "(" + inside + "(" + inside + ")*" + ")" + exp[index+1:len(exp)])
+                    if i == ")":
+                        counter += 1
+                    elif i == "(":
+                        counter -= 1
+                    if counter == 0:
+                        break
+                inside = inside[::-1]
+                quantity1 = len(inside)
+                quantity2 = len(exp[0:index-1])
+                ignore = quantity2 - quantity1
+                return self.replacePlus(exp[0:ignore] + inside + "(" + inside + ")*" + exp[index+1:len(exp)])
             else:
                 return self.replacePlus(exp[0:index-1] + "(" + exp[index-1] + exp[index-1] + "*)" + exp[index+1:len(exp)])
+
 
     def format_reg_ex(self,regex):
         ''' 
@@ -142,11 +152,7 @@ class RegexToPostfix:
 
         return True
 
-    def infix_to_postfix(self,expresion):
-        '''
-        Funcion que convierte una expresion regular en formato infix a formato postfix.
-        Esta expresion regular es ingresada al instancia un objeto de esta clase.
-        '''
+    def infix_to_postfix(self, expresion):
         # replace symbol dot (.) with another symbol tilde (~)
         expresion = expresion.replace(".", "~")
         regex = expresion
@@ -154,7 +160,6 @@ class RegexToPostfix:
         postfix = ''
         stack = []
 
-        
         eqRegexPlus = self.replacePlus(regex)
         eqRegexQuestion = self.replaceQuestionMark(eqRegexPlus)
         formattedRegex = self.format_reg_ex(eqRegexQuestion)
@@ -164,49 +169,48 @@ class RegexToPostfix:
             c = eqRegex[cc]
             if (c == '('):
                 stack.append(c)
-            elif(c == ')'):
-                #si el ultimo elemento de la pila es '(' 
-                while (stack[-1] != '('): 
+            elif (c == ')'):
+                # si el ultimo elemento de la pila es '(' 
+                while len(stack) > 0 and stack[-1] != '(':  # Modificación aquí
                     postfix += stack.pop()
-                stack.pop();
+                if len(stack) > 0 and stack[-1] == '(':
+                    stack.pop()
+                else:
+                    raise Exception("Error: Falta un paréntesis de apertura en la expresión regular.")
             else:
-                while(len(stack) > 0):
+                while len(stack) > 0:
                     peekedChar = stack[-1]
 
                     peekedCharPrecedence = self.get_precendence(peekedChar)
                     currentCharPrecedence = self.get_precendence(c)
-                    if(peekedCharPrecedence >= currentCharPrecedence):
+                    if (peekedCharPrecedence >= currentCharPrecedence):
                         postfix += stack.pop()
                     else:
                         break
 
                 stack.append(c)
 
-
-        while(len(stack) > 0):
+        while (len(stack) > 0):
             postfix += stack.pop()
 
-        if(postfix.find('(') != -1):
+        if (postfix.find('(') != -1):
             postfix = 'ERROR_POSTFIX_)'
 
-        print(' - infix       = '+regex)
-        print(' - formatedregex    = '+formattedRegex)
-        print(' - substEq     = '+eqRegex)
+        print(' - infix       = ' + regex)
+        print(' - formatedregex    = ' + formattedRegex)
+        print(' - substEq     = ' + eqRegex)
         print('this is postfix:', postfix)
         print('')
 
-        return postfix.replace('..','.')
-    
-    
+        return postfix.replace('..', '.')
+
+
 '''
-
-
-
 
 regex = RegexToPostfix()
 # Crear objeto RegexToPostfix
 regex_to_postfix = RegexToPostfix()
-expresiones = ['(x|t)+((a|m)?)+' ]
+expresiones = ['(x|t)+((a|m)?)+', '("(.(;(.;(.|;)+)*)*)*)']
 #expresiones = ['(a|b)*(b|a)*abb', '((e|a)b*)*', '(.|;)*-/.(.|;)*', '(x|t)+((a|m)?)+', '(a|b)*abb', '("(.(;(.;(.|;)+)*)*)*']
 for expresion in expresiones:
     #postfix = regex.infix_to_postfix(expresion)
@@ -220,6 +224,7 @@ for expresion in expresiones:
     else:
         print("La expresión no se encuentra en notación postfix")
         print('')
+
 '''
 
 
