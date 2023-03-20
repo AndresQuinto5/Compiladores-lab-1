@@ -1,0 +1,28 @@
+Transition Table:
+Start State: 0
+Accept State: None
+
+From	Input	To
+0	ϵ	1
+0	ϵ	7
+1	ϵ	2
+1	ϵ	4
+2	a	3
+3	ϵ	6
+4	b	5
+5	ϵ	6
+6	ϵ	1
+6	ϵ	7
+7	a	8
+8	ϵ	9
+8	ϵ	11
+9	a	10
+10	ϵ	13
+11	b	12
+12	ϵ	13
+13	ϵ	14
+13	ϵ	16
+14	a	15
+15	ϵ	18
+16	b	17
+17	ϵ	18

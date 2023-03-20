@@ -1,0 +1,21 @@
+digraph {
+	A -> B [label=a]
+	B -> D [label=a]
+	D -> F [label=a]
+	F -> F [label=a]
+	F -> G [label=b]
+	G -> H [label=a]
+	H -> D [label=a]
+	H -> E [label=b]
+	E -> H [label=a]
+	E -> I [label=b]
+	I -> B [label=a]
+	I -> C [label=b]
+	C -> B [label=a]
+	C -> C [label=b]
+	G -> I [label=b]
+	D -> G [label=b]
+	B -> E [label=b]
+	A -> C [label=b]
+	rankdir=LR
+}

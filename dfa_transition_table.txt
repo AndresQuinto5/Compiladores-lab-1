@@ -1,0 +1,23 @@
+Transition Table (DFA):
+Start State: A
+Accept State(s): []
+
+From	Input	To
+A	a	B
+A	b	C
+B	a	D
+B	b	E
+C	a	B
+C	b	C
+D	a	F
+D	b	G
+E	a	H
+E	b	I
+F	a	F
+F	b	G
+G	a	H
+G	b	I
+H	a	D
+H	b	E
+I	a	B
+I	b	C
